@@ -66,8 +66,8 @@
  */
 -(BOOL)StepSFC_CheckUploadSN:(BOOL)isUploadSFC Option:(NSString*)option sn:(NSString *)sn testResult:(NSString*)testResult startTime:(NSString*)startTime testArgument:(NSArray*)array;
 
-//SFC检测上传sn
--(BOOL)StepSFC_CheckUploadSN:(BOOL)isUploadSFC Option:(NSString*)option testResult:(NSString*)testResult startTime:(NSString*)startTime testArgument:(NSArray*)array;
+////SFC检测上传sn
+//-(BOOL)StepSFC_CheckUploadSN:(BOOL)isUploadSFC Option:(NSString*)option testResult:(NSString*)testResult startTime:(NSString*)startTime testArgument:(NSArray*)array;
 
 -(BOOL)StepSFC_isConnectServer:(BOOL)isUploadSFC;
 

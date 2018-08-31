@@ -14,7 +14,7 @@
 			<key>Min</key>
 			<string>0</string>
 			<key>Max</key>
-			<string>5000</string>
+			<string>2000</string>
 			<key>Value1</key>
 			<string>--</string>
 			<key>Value2</key>
@@ -123,7 +123,7 @@
 			<key>Min</key>
 			<string>0</string>
 			<key>Max</key>
-			<string>5000</string>
+			<string>2000</string>
 			<key>Value1</key>
 			<string>--</string>
 			<key>Value2</key>

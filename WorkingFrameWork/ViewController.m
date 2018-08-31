@@ -227,7 +227,6 @@ NSString * param_Name = @"Param";
     testnum   = 0;
     testingFixStr = @"";
     
-    
     IsInstrument = NO;
     isComfirmOK  = NO;
     isNullTest   = NO;
@@ -438,8 +437,11 @@ NSString * param_Name = @"Param";
     {
         startbutton.enabled = NO;
         
+       
+        
     }
     
+     index = 8;
     [serialport WriteLine:@"start"];
     
 }
@@ -1072,11 +1074,7 @@ NSString * param_Name = @"Param";
                 [self UpdateTextView:@"index=8,请重新双击启动" andClear:NO andTextView:Log_View];
                 
             }
-            
-            
         }
-        
-        
         
 #pragma mark-------------//index=9,发送开始测试的通知
         if (index == 9) {
@@ -1358,11 +1356,6 @@ NSString * param_Name = @"Param";
                     }
                     
                     [self updataFoam];
-                    
-                    
-                    
-                    
-
                 }
                 
                 
@@ -1509,7 +1502,6 @@ NSString * param_Name = @"Param";
         foldDir = [totalFold stringByAppendingFormat:@"/%@",@"NoConfig"];
     }
     
-    
     [self createFileWithstr:[NSString stringWithFormat:@"%@/%@_A.csv",foldDir,day] withFold:foldDir];
     [self createFileWithstr:[NSString stringWithFormat:@"%@/%@_B.csv",foldDir,day] withFold:foldDir];
     [self createFileWithstr:[NSString stringWithFormat:@"%@/%@_C.csv",foldDir,day] withFold:foldDir];
@@ -1532,7 +1524,6 @@ NSString * param_Name = @"Param";
         }
         else
         {
-            
             [fold Folder_Creat:foldStr];
             [csvFile CSV_Open:fileString];
             [csvFile CSV_Write:plist.titile];
@@ -1605,7 +1596,6 @@ NSString * param_Name = @"Param";
 - (IBAction)NullTestDone_Button:(id)sender {
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"WriteNullValue" object:nil];
-    
 }
 
 
@@ -1854,6 +1844,8 @@ NSString * param_Name = @"Param";
                 
                 [Status_TF setStringValue:[NSString stringWithFormat:@"index = %d:SN%d不检验",testIndex,snIndex]];
             });
+            
+            index = testIndex+1;
         }
         else
         {
@@ -1865,11 +1857,7 @@ NSString * param_Name = @"Param";
                 
                 index = testIndex+1;;
                 [txtInshare TXT_Write:[NSString stringWithFormat:@"%@:主流程-->SN=%@\n",[[GetTimeDay shareInstance] getFileTime],[NSString stringWithFormat:@"SN%d 检验OK",snIndex]]];
-                
-//                if (snIndex==1)SN1_String = tf.stringValue;
-//                if (snIndex==2)SN2_String = tf.stringValue;
-//                if (snIndex==3)SN3_String = tf.stringValue;
-//                if (snIndex==4)SN4_String = tf.stringValue;
+
             }
             else
             {
@@ -1944,7 +1932,6 @@ NSString * param_Name = @"Param";
         BOOL isUploadOK = NO;
         while (i<3) {
             
-            
             if ([testStep StepSFC_CheckUploadSN:YES Option:@"uploadLog" sn:sn testResult:result startTime:startTime testArgument:arr]) {
                 
                 dispatch_async(dispatch_get_main_queue(), ^{
@@ -1958,7 +1945,6 @@ NSString * param_Name = @"Param";
                 
                 isUploadOK = YES;
                 break;
-                
             }
             i++;
                 
@@ -2180,29 +2166,39 @@ NSString * param_Name = @"Param";
 -(void)CheckServer
 {
     
-    if ([testStep StepSFC_CheckUploadSN:YES Option:@"isConnectServer" sn:nil testResult:nil startTime:nil testArgument:nil]) {
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
+    int connectNum = 0;
+    while (connectNum<3) {
+    
+        if ([testStep StepSFC_CheckUploadSN:YES Option:@"isConnectServer" sn:nil testResult:nil startTime:nil testArgument:nil]) {
             
-            [Status_TF setStringValue:@"index=2,服务器检测OK"];
-            [Server_State_TF setStringValue:@"服务器正常"];
-            [Server_State_TF setBackgroundColor:[NSColor greenColor]];
-            
-        });
-        [self UpdateTextView:@"index=2,服务器检测OK" andClear:NO andTextView:Log_View];
-        index = 3;
-        isServer = YES;
+            dispatch_async(dispatch_get_main_queue(), ^{
+                
+                [Status_TF setStringValue:@"index=2,服务器检测OK"];
+                [Server_State_TF setStringValue:@"服务器正常"];
+                [Server_State_TF setBackgroundColor:[NSColor greenColor]];
+                
+            });
+            [self UpdateTextView:@"index=2,服务器检测OK" andClear:NO andTextView:Log_View];
+            index = 3;
+            isServer = YES;
+            break;
+        }
+        else
+        {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [Status_TF setStringValue:@"index=2,服务器检测NG"];
+                [Server_State_TF setStringValue:@"服务器异常"];
+                [Server_State_TF setBackgroundColor:[NSColor redColor]];
+            });
+            [self UpdateTextView:@"index=2,服务器检测NG" andClear:NO andTextView:Log_View];
+            isServer = NO;
+            connectNum++;
+            if (connectNum==3) {
+                index = 3;
+            }
+        }
     }
-    else
-    {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [Status_TF setStringValue:@"index=2,服务器检测NG"];
-            [Server_State_TF setStringValue:@"服务器异常"];
-            [Server_State_TF setBackgroundColor:[NSColor redColor]];
-        });
-        [self UpdateTextView:@"index=2,服务器检测NG" andClear:NO andTextView:Log_View];
-        isServer = NO;
-    }
+    
 }
 
 
@@ -2210,50 +2206,6 @@ NSString * param_Name = @"Param";
 #pragma mark------------更新泡棉次数
 -(void)updataFoam
 {
-//    //测试结束时，发送结束通知
-//    [txt_N_file TXT_Write:@"*********************************\n\n\n*********************************\n"];
-//    
-//    //泡棉弹窗，超过预设值时清零
-//    int  Test_Foam_Num = [[[NSUserDefaults standardUserDefaults] objectForKey:kPresentNum] intValue];
-//    Test_Foam_Num = Test_Foam_Num +1;
-//    
-//    //存在本地
-//    [[NSUserDefaults standardUserDefaults] setValue:[NSString stringWithFormat:@"%d",Test_Foam_Num>=[param.FoamNum intValue]?0:Test_Foam_Num] forKey:kPresentNum];
-//    [[NSUserDefaults standardUserDefaults] synchronize];
-//    
-//    dispatch_async(dispatch_get_main_queue(), ^{
-//        
-//        [Forum_TF setStringValue:[NSString stringWithFormat:@"%d/%@",Test_Foam_Num,param.FoamNum]];
-//    });
-//    
-//    //泡棉次数达到，更换泡棉
-//    if (Test_Foam_Num>=[param.FoamNum intValue]){
-//        
-//        [alert ShowCancelAlert:[NSString stringWithFormat:@"泡棉已达到%d,请更换泡棉",[param.FoamNum intValue]]];
-//        
-//        dispatch_async(dispatch_get_main_queue(), ^{
-//            
-//            [Status_TF setStringValue:@"请更换泡棉,重新输入密码设置"];
-//            [Status_TF setBackgroundColor:[NSColor redColor]];
-//           
-//        });
-//        
-//        [NSThread sleepForTimeInterval:1000];
-//    }
-//    
-//    //DCR<Rfix时，提示空测
-//    if (nulltest_button.hidden&&(action1.isShow||action2.isShow||action3.isShow||action4.isShow)) {
-//        
-//        [alert ShowCancelAlert:@"Rfix参考值变化较大，请重新空测"];
-//        if (action1!=nil) [action1 threadEnd];
-//        if (action2!=nil) [action2 threadEnd];
-//        if (action3!=nil) [action3 threadEnd];
-//        if (action4!=nil) [action4 threadEnd];
-//        
-//       
-//    }
-//
-    
     //测试结束时，发送结束通知
     [txt_N_file TXT_Write:@"*********************************\n\n\n*********************************\n"];
     
@@ -2261,7 +2213,7 @@ NSString * param_Name = @"Param";
     int  Test_Foam_Num = [[[NSUserDefaults standardUserDefaults] objectForKey:kPresentNum] intValue];
     Test_Foam_Num = Test_Foam_Num +1;
     
-    //    //存在本地
+    //存在本地
     [[NSUserDefaults standardUserDefaults] setValue:[NSString stringWithFormat:@"%d",Test_Foam_Num] forKey:kPresentNum];
     [[NSUserDefaults standardUserDefaults] synchronize];
     
@@ -2269,8 +2221,6 @@ NSString * param_Name = @"Param";
         
         [Forum_TF setStringValue:[NSString stringWithFormat:@"%d/%@",Test_Foam_Num,param.FoamNum]];
     });
-    
-    
     
     if (Test_Foam_Num>=[param.FoamNum intValue]){
         [alert ShowCancelAlert:[NSString stringWithFormat:@"泡棉已达到%d,请更换泡棉",[param.FoamNum intValue]] Window:[NSApp mainWindow]];
@@ -2284,8 +2234,6 @@ NSString * param_Name = @"Param";
         if (action3!=nil) [action3 threadEnd];
         if (action4!=nil) [action4 threadEnd];
     }
-    
-    
     
 }
 
@@ -2318,7 +2266,7 @@ NSString * param_Name = @"Param";
         NSFileManager  * manager  = [NSFileManager defaultManager];
         BOOL isExist = [manager fileExistsAtPath:updata_path];//判断文件是否存在
         BOOL __block isUploadSuccess = YES;
-        if(isExist){
+        if (isExist&&isUpLoadSFC&&isServer&&isWebOpen){
             //读取文件内容
             [txtFile TXT_Open:updata_path];
             NSString  * contentStr = [txtFile TXT_Read];
@@ -2334,9 +2282,7 @@ NSString * param_Name = @"Param";
                     dispatch_async(queue, ^{
                         if(NO==[uploadManager UploadDataFromLocalFile:[dataArr objectAtIndex:i]])
                         {
-                            
                             isUploadSuccess = NO;
-                            
                             return;
                         }
                     });

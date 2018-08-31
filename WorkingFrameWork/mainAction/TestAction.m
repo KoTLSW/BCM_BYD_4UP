@@ -60,6 +60,8 @@ NSString  *param_path=@"Param";
     FileTXT      * txt_file;                                  //txt文件
     FileTXT_N    * txt_N_file;
     
+    //处理验证的数据
+    FileTXT      * CP_Data_file;                              //收集数据的文件
     
     //************* timer *************
     NSString            * start_time;                         //启动测试的时间
@@ -75,7 +77,7 @@ NSString  *param_path=@"Param";
     NSMutableString     * ErrorMessageString;                 //失败测试项的原因
     
     //新增加测试时时的Log值
-    NSString            * testLogPath;                        //生成的时时LOG值
+    NSString            * tesCPtLogPath;                        //生成的时时LOG值
     
     //检测PDCA和SFC的BOOL//测试结果PASS、FAIL
     BOOL      isPDCA;
@@ -152,7 +154,7 @@ NSString  *param_path=@"Param";
         self.instr_2987             = [fix objectForKey:@"b2987_adress"];
         self.instr_4980             = [fix objectForKey:@"e4980_adress"];
 //        
-//        testLogPath                 = [NSString stringWithFormat:@"%@/%@",[[NSUserDefaults standardUserDefaults] objectForKey:kTotalFoldPath],@"TestLog.txt"];
+        tesCPtLogPath                 = [NSString stringWithFormat:@"%@/%@",[[NSUserDefaults standardUserDefaults] objectForKey:kTotalFoldPath],@"CP.txt"];
     
         //初始化各种的整型变量
         self.tab =tab;
@@ -206,20 +208,16 @@ NSString  *param_path=@"Param";
         updateItem.fix_Cap          = [fix objectForKey:@"fix_Cap"];
         //初始化文件处理类
         csv_file  = [[FileCSV alloc] init];
-        //csv_file  = [FileCSV shareInstance];
         [csv_file addGlobalLock];
         txt_file  = [FileTXT shareInstance];
-//        [txt_file TXT_Open:testLogPath];
         total_file= [[FileCSV alloc] init];
         [total_file addGlobalLock];
         fold     =  [[Folder  alloc] init];
         teststep = [TestStep Instance];
         [teststep addGlobalLock];
-        
         txt_N_file = [FileTXT_N shareInstance];
-
         
-       //=======================定义通知
+        //=======================定义通知
         //监听启动
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(NSThreadStart_Notification:) name:@"NSThreadStart_Notification" object:nil];
         //监听测试结束通知
@@ -365,7 +363,6 @@ NSString  *param_path=@"Param";
                     index = 1000;
                     [self writeTestLog:fix_type withString:[NSString stringWithFormat:@"index=2,手动扫码,index设置为%d",index]];
                 }
-                
             }
             else
             {
@@ -1609,7 +1606,7 @@ NSString  *param_path=@"Param";
                     
                     [store_Dic setValue:[NSString stringWithFormat:@"%@",@"1001"] forKey:[NSString stringWithFormat:@"%@_Rdut",testname]];
                 }
-                if (Rdut<1000&&Rdut>0) {
+                if (Rdut<1000&&Rdut>=0) {
                     [store_Dic setValue:[NSString stringWithFormat:@"%f",Rdut] forKey:[NSString stringWithFormat:@"%@_Rdut",testname]];
                 }
             }
@@ -1638,12 +1635,18 @@ NSString  *param_path=@"Param";
 #pragma mark----------------MΩ情况下调用的方法，
 -(void)storeValueToDic_With_Item:(Item *)item
 {
-    double Cdut,Cfix,Rdut;
+    double Cdut,Cfix,Rdut,CollectCPData,CollectRdutData;
     NSString *smallCap=@"<1fF";
     NSString *largeACR=@">100GOhm";
     Cfix=[updateItem.fix_Cap floatValue];
-    Cdut=fabs(num*1E+12-Cfix);
-    Rdut=1E+6/(Cdut*2*3.14159*item.freq.integerValue);
+    CollectCPData =num*1E+12-Cfix;
+    Cdut=fabs(CollectCPData);
+    CollectRdutData=1E+6/(Cdut*2*3.14159*item.freq.integerValue);
+    Rdut = fabs(CollectRdutData);
+    
+    //收集计算的电容的数据
+    [self writeWithPath:tesCPtLogPath Data:[NSString stringWithFormat:@"fixtype=%d,CP=%f,Cfix=%f,Rdut=%f\n",fix_type,CollectCPData,Cfix,CollectRdutData]];
+    
     
     if (Cdut <= 0)
     {
@@ -1653,8 +1656,8 @@ NSString  *param_path=@"Param";
     else
     {
         [store_Dic setValue:[NSString stringWithFormat:@"%f",Cdut] forKey:[NSString stringWithFormat:@"%@_Cdut",item.testName]];
-        [store_Dic setValue:[NSString stringWithFormat:@"%f",Rdut] forKey:[NSString stringWithFormat:@"%@_Rdut",item.testName]];
         
+        [store_Dic setValue:[NSString stringWithFormat:@"%f",Rdut] forKey:[NSString stringWithFormat:@"%@_Rdut",item.testName]];
     }
     
     [store_Dic setValue:[NSString stringWithFormat:@"%.3f",Cfix] forKey:[NSString stringWithFormat:@"%@_Cfix",item.testName]];
@@ -1777,6 +1780,16 @@ NSString  *param_path=@"Param";
     }
 }
 
+#pragma mark=================写入Log文件
+-(void)writeWithPath:(NSString *)path Data:(NSString *)CpData
+{
+    //收集数据的路径
+    if (CP_Data_file==nil) {
+         CP_Data_file = [[FileTXT alloc]init];
+        [CP_Data_file TXT_Open:tesCPtLogPath];
+    }
+    [CP_Data_file TXT_Write:[NSString stringWithFormat:@"%@,",CpData]];
+}
 
 
 
