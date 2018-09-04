@@ -1076,6 +1076,7 @@ NSString  *param_path=@"Param";
                 if ([testitem.testName isEqualToString:@"B_E_DCR"]||[testitem.testName isEqualToString:@"B2_E2_DCR"]||[testitem.testName isEqualToString:@"B4_E4_DCR"]||[testitem.testName isEqualToString:@"ABC_DEF_DCR"]) {
                     
                     if(isDebug)num=500000000000;
+                    
                      testvalue = [NSString stringWithFormat:@"%.3f",num*1E-9];
                     
                     
