@@ -192,12 +192,6 @@ NSString * param_Name = @"Param";
     NSString            * testLog_path;  //断网存储的数据
     NSString            * LostData_path;  //断网存储的数据
     
-    //SN的值
-    NSString            * SN1_String;
-    NSString            * SN2_String;
-    NSString            * SN3_String;
-    NSString            * SN4_String;
-    
 }
 
 @property(nonatomic,strong) AFHTTPSessionManager   * session;
@@ -1027,9 +1021,14 @@ NSString * param_Name = @"Param";
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [Status_TF setStringValue:@"index=7,Cancell Change_ID Button"];
                 });
-                
                 index = 7;
             }
+            
+            //判断输入框是否满足条件
+            if ((choose_dut1.state&&choose_dut2.state&&choose_dut3.state&&choose_dut4.state)&&([NS_TF1.stringValue length]==0||[NS_TF2.stringValue length]==0||[NS_TF3.stringValue length]==0||[NS_TF4.stringValue length]==0)) index = 3;
+            
+            
+            
         }
         
 #pragma mark-------------//index=8,双击start按钮/或者点击界面上的start按钮
@@ -1097,18 +1096,22 @@ NSString * param_Name = @"Param";
             //给SN赋值
             if(choose_dut1.state){
                 action1.isTest = YES;
+                action1.dut_sn = NS_TF1.stringValue;
                 [ChooseNumArray addObject:@"Test"];
             }
             if (choose_dut2.state) {
                 action2.isTest = YES;
+                action2.dut_sn = NS_TF2.stringValue;
                 [ChooseNumArray addObject:@"Test"];
             }
             if (choose_dut3.state) {
                 action3.isTest = YES;
+                action3.dut_sn = NS_TF3.stringValue;
                 [ChooseNumArray addObject:@"Test"];
             }
             if (choose_dut4.state) {
                 action4.isTest = YES;
+                action4.dut_sn = NS_TF4.stringValue;
                 [ChooseNumArray addObject:@"Test"];
             }
             
@@ -1262,11 +1265,6 @@ NSString * param_Name = @"Param";
                     NS_TF4.editable = YES;
                     
                     testnum = 0;
-                    //清理缓存数据
-                    SN1_String = @"";
-                    SN2_String = @"";
-                    SN3_String = @"";
-                    SN4_String = @"";
                     
                     NSTextField *TF = [self.view viewWithTag:1];
                     [TF becomeFirstResponder];

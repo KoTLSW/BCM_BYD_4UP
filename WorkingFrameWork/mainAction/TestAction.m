@@ -1075,7 +1075,10 @@ NSString  *param_path=@"Param";
             {
                 if ([testitem.testName isEqualToString:@"B_E_DCR"]||[testitem.testName isEqualToString:@"B2_E2_DCR"]||[testitem.testName isEqualToString:@"B4_E4_DCR"]||[testitem.testName isEqualToString:@"ABC_DEF_DCR"]) {
                     
+                     num = 50000000000;
                      testvalue = [NSString stringWithFormat:@"%.3f",num*1E-9];
+                    
+                    
                     [self storeValueToDic_with_name:testitem.testName];
                 }
             }
@@ -1568,13 +1571,7 @@ NSString  *param_path=@"Param";
     }
     
     Rdut=(num*1E-9*Rfixture)/(Rfixture-num*1E-9);
-    
-    
-    if (isDebug) {
         
-        Rdut = arc4random()%100;
-    }
-    
     
     //DCR为负值时，并且小于-10000超过量程，Rdut显示1001
     //DCR为正值时，DCR-Rfix>0,Rdut显示-999，提示重新空测
