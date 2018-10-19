@@ -27,6 +27,16 @@
 #import "TestStep.h"
 
 
+
+@protocol TestActionDelegate <NSObject>
+
+@optional
+
+-(void)writeDataToPath:(NSString *)path FileName:(NSString *)filename FileTitle:(NSString *)headTitle  Content:(NSString *)content ;
+
+@end
+
+
 typedef enum : NSUInteger {
     AutoCode,
     ManualCode,
@@ -70,7 +80,7 @@ typedef enum : NSUInteger {
 @property(nonatomic,assign)MyQrcCode      qrCode;
 
 @property(nonatomic,assign)BOOL           isShow;                //提示空测
-
+@property(nonatomic,assign)id<TestActionDelegate>     delegate;  //设置代理
 
 
 

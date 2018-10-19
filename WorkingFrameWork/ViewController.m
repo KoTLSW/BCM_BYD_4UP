@@ -37,7 +37,7 @@
 //文件名称
 NSString * param_Name = @"Param";
 
-@interface ViewController()<NSTextFieldDelegate>
+@interface ViewController()<NSTextFieldDelegate,TestActionDelegate>
 {
     Table * tab1;
     Table * tab2;
@@ -183,14 +183,17 @@ NSString * param_Name = @"Param";
     BOOL                 isNullTest;     //是否空测试
     BOOL                 isLoopTest;     //循环测试
     
+    //===================定义串行队列
+    dispatch_queue_t     queue;
+    
     //进行网络监测判断的bool值
     Reachability    *    hostReachbility;
-    BOOL                 isWebOpen;     //检测网络
-    int                  WebOpenNum;    //网络正常计数
-    BOOL                 isServer;      //服务器
-    NSString            * updata_path;  //断网存储的数据
-    NSString            * testLog_path;  //断网存储的数据
-    NSString            * LostData_path;  //断网存储的数据
+    BOOL                 isWebOpen;         //检测网络
+    int                  WebOpenNum;       //网络正常计数
+    BOOL                 isServer;         //服务器
+    NSString            * updata_path;     //断网存储的数据
+    NSString            * testLog_path;    //测试过程的日志
+    NSString            * LostData_path;   //可能丢失的数据，用来对比
     
 }
 
@@ -206,6 +209,7 @@ NSString * param_Name = @"Param";
 
 
 - (void)viewDidLoad {
+    
     [super viewDidLoad];
     //***********************变量定义区***********************//
     index    = 0;
@@ -243,6 +247,9 @@ NSString * param_Name = @"Param";
     [config_Dic setValue:param.sw_ver forKey:kSoftwareVersion];
     [Version_TF setStringValue:param.sw_ver];
     
+    //串行队列
+    queue = dispatch_queue_create("totalCsv", DISPATCH_QUEUE_SERIAL);
+    
     
     A_resultDic = [[NSDictionary alloc]init];
     B_resultDic = [[NSDictionary alloc]init];
@@ -273,6 +280,8 @@ NSString * param_Name = @"Param";
     //生成测试Log的文件夹
     totalPath = [NSString stringWithFormat:@"%@/%@/%@_%@/%@",param.foldDir,[[GetTimeDay shareInstance] getCurrentDay],param.sw_name,param.sw_ver,@"Cr"];
     [[NSUserDefaults standardUserDefaults] setValue:totalPath forKey:kTotalFoldPath];
+    
+    totalPath = [NSString stringWithFormat:@"%@/%@",totalPath,@"Log"];
     [fold Folder_Creat:totalPath];
     
     //生成缓存数据路径
@@ -286,6 +295,8 @@ NSString * param_Name = @"Param";
     //生成数据鉴定LOG
     LostData_path = [NSString stringWithFormat:@"%@/%@",totalPath,@"LostData.txt"];
     [txt_N_file TXT_Open:LostData_path];
+    
+    
 
     //上传相关文件
     testStep   = [TestStep Instance];
@@ -313,9 +324,15 @@ NSString * param_Name = @"Param";
     
     //***********************断网上传区***********************//
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:@"kNetworkReachabilityChangedNotification" object:nil];
-   hostReachbility = [Reachability reachabilityWithHostName:[param.ServerFC objectForKey:@"Server_IP"]];
-   [self NetworkState:hostReachbility];
-   [hostReachbility startNotifier];
+    
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        
+        hostReachbility = [Reachability reachabilityWithHostName:[param.ServerFC objectForKey:@"Server_IP"]];
+        [self NetworkState:hostReachbility];
+        [hostReachbility startNotifier];
+        
+    });
+   
     
     
     //***********************线程开启区***********************//
@@ -337,12 +354,9 @@ NSString * param_Name = @"Param";
     }
     else
     {
-        
         dispatch_async(dispatch_get_main_queue(), ^{
             [Forum_TF setStringValue:[NSString stringWithFormat:@"%d/%@",Forum_Num,param.FoamNum]];
         });
-        
-        
         thread = [[NSThread alloc] initWithTarget:self selector:@selector(Working) object:nil];
         [thread start];
     }
@@ -430,9 +444,6 @@ NSString * param_Name = @"Param";
     }else
     {
         startbutton.enabled = NO;
-        
-       
-        
     }
     
      index = 8;
@@ -533,7 +544,6 @@ NSString * param_Name = @"Param";
     {
 #pragma mark-------------//index = 0,初始化控制板串口
         if (index == 0) {
-            
             
             [NSThread sleepForTimeInterval:0.5];
             BOOL  isOpen = [serialport Open:param.contollerBoard]||[serialport Open:param.contollerBoard_two];
@@ -690,8 +700,6 @@ NSString * param_Name = @"Param";
             
             
         }
-        
-        
 #pragma mark-------------//index = 2,检测服务器
         if (index == 2) {
             
@@ -699,8 +707,8 @@ NSString * param_Name = @"Param";
             
             if (param.isDebug) {//debug模式
                 [self UpdateTextView:@"index=2,Debug模式:服务器检测OK" andClear:NO andTextView:Log_View];
-                index = 3;
                 [self CheckServer];
+                 fixtureID = @"EW034";
                 
             }else if (isUpLoadSFC)  //上传服务器
             {
@@ -717,9 +725,6 @@ NSString * param_Name = @"Param";
                 isServer = NO;
             }
         }
-        
-        
-        
 #pragma mark-------------//index = 3,检测SN1的输入值
         if (index == 3) {
             
@@ -763,7 +768,7 @@ NSString * param_Name = @"Param";
                 
                 if (choose_dut1.state) {
                     
-                    if (isUpLoadSFC&&isServer&&isWebOpen)
+                    if (isUpLoadSFC&&isWebOpen)
                     {
                         [self compareSNToServerwithTextField:NS_TF1 Index:3 SnIndex:1];
                     }
@@ -781,10 +786,9 @@ NSString * param_Name = @"Param";
             }
             else{
                 
-                if (isUpLoadSFC&&isServer&&isWebOpen) {
+                if (isUpLoadSFC&&isWebOpen) {
                     
                     [self compareSNToServerwithTextField:NS_TF1 Index:3 SnIndex:1];
-                    
                 }
                 else
                 {
@@ -793,7 +797,6 @@ NSString * param_Name = @"Param";
                 
             }
         }
-        
 #pragma mark-------------//index = 4,检测SN2的输入值
         if (index == 4) {
             [NSThread sleepForTimeInterval:0.5];
@@ -831,7 +834,7 @@ NSString * param_Name = @"Param";
             else if (singleTest) {
                 if (choose_dut2.state)
                 {
-                    if (isUpLoadSFC&&isServer&&isWebOpen) {
+                    if (isUpLoadSFC&&isWebOpen) {
                         [self compareSNToServerwithTextField:NS_TF2 Index:4 SnIndex:2];
                     }
                     else
@@ -846,7 +849,7 @@ NSString * param_Name = @"Param";
             }
             else
             {
-                if (isUpLoadSFC&&isServer&&isWebOpen) {
+                if (isUpLoadSFC&&isWebOpen) {
                     
                     [self compareSNToServerwithTextField:NS_TF2 Index:4 SnIndex:2];
                 }
@@ -856,10 +859,10 @@ NSString * param_Name = @"Param";
                 }
             }
         }
-        
 #pragma mark-------------//index = 5,检测SN3的输入值
         if (index == 5) {
             [NSThread sleepForTimeInterval:0.5];
+            
             if (param.isDebug&&singleTest) {
                 
                 if (choose_dut3.state) {
@@ -889,7 +892,7 @@ NSString * param_Name = @"Param";
             else if (singleTest){
                 if (choose_dut3.state) {
                     
-                    if (isUpLoadSFC&&isServer&&isWebOpen) {
+                    if (isUpLoadSFC&&isWebOpen) {
                         
                         [self compareSNToServerwithTextField:NS_TF3 Index:5 SnIndex:3];
                     }
@@ -905,7 +908,7 @@ NSString * param_Name = @"Param";
             }
             else
             {
-                if (isUpLoadSFC&&isServer&&isWebOpen) {
+                if (isUpLoadSFC&&isWebOpen) {
                     
                     [self compareSNToServerwithTextField:NS_TF3 Index:5 SnIndex:3];
                 }
@@ -915,9 +918,7 @@ NSString * param_Name = @"Param";
                 }
             }
         }
-        
 #pragma mark-------------//index = 6,检测SN4的输入值
-        
         if (index == 6) {
             
             [NSThread sleepForTimeInterval:0.5];
@@ -954,7 +955,7 @@ NSString * param_Name = @"Param";
                 
                 if (choose_dut4.state) {
                     
-                    if (isUpLoadSFC&&isServer&&isWebOpen) {
+                    if (isUpLoadSFC&&isWebOpen) {
                         
                         [self compareSNToServerwithTextField:NS_TF4 Index:6 SnIndex:4];
                     }
@@ -970,7 +971,7 @@ NSString * param_Name = @"Param";
             }
             else
             {
-                if (isUpLoadSFC&&isServer&&isWebOpen) {
+                if (isUpLoadSFC&&isWebOpen) {
                     
                     [self compareSNToServerwithTextField:NS_TF4 Index:6 SnIndex:4];
                 }
@@ -982,9 +983,6 @@ NSString * param_Name = @"Param";
             
             
         }
-        
-        
-        
 #pragma mark------------//index=7,判断当前配置文件和changeID等配置
         if (index == 7) { //判断当前配置文件和changeID等配置
             
@@ -1030,7 +1028,6 @@ NSString * param_Name = @"Param";
             
             
         }
-        
 #pragma mark-------------//index=8,双击start按钮/或者点击界面上的start按钮
         if (index == 8) {
             
@@ -1074,7 +1071,6 @@ NSString * param_Name = @"Param";
                 
             }
         }
-        
 #pragma mark-------------//index=9,发送开始测试的通知
         if (index == 9) {
             
@@ -1136,8 +1132,6 @@ NSString * param_Name = @"Param";
             index = 1000;
             
         }
-        
-        
 #pragma mark-------------//index=101,A治具测试结束，发送指令信号灯
         if (fix_A_num == 101) {
             
@@ -1161,8 +1155,6 @@ NSString * param_Name = @"Param";
             }
             
         }
-        
-        
 #pragma mark-------------//index=102,B治具测试结束，发送指令信号灯
         if (fix_B_num == 102) {
             
@@ -1187,7 +1179,6 @@ NSString * param_Name = @"Param";
             
             
         }
-        
 #pragma mark-------------//index=103,C治具测试结束，发送指令信号灯
         if (fix_C_num == 103) {
             
@@ -1207,8 +1198,6 @@ NSString * param_Name = @"Param";
                 [self LightAndShowResultWithFix:notiString_C TestingFixStr:testingFixStr Dictionary:C_resultDic];
             }
         }
-        
-        
 #pragma mark-------------//index=104,C治具测试结束，发送指令信号灯
         if (fix_D_num == 104) { //扫描SN
             
@@ -1228,10 +1217,8 @@ NSString * param_Name = @"Param";
             }
             
         }
-        
 #pragma mark-------------//index=105,所有软件测试结束
         if (index == 105) {
-            
             //========定时器结束========
             [mkTimer endTimer];
             ct_cnt = 0;
@@ -1362,12 +1349,10 @@ NSString * param_Name = @"Param";
            
             
         }
-        
 #pragma mark-------------//index=1000,测试结束
         if (index == 1000) { //等待测试结束，并返回测试的结果
             [NSThread sleepForTimeInterval:0.001];
         }
-        
     }
     
     
@@ -1532,12 +1517,9 @@ NSString * param_Name = @"Param";
 }
 
 
-
-
 #pragma mark---------------监听网络通知
 -(void)reachabilityChanged:(NSNotification *)noti
 {
-    
     Reachability  * curReach = [noti object];
     NSCParameterAssert([curReach isKindOfClass:[Reachability class]]);
     NetworkStatus netStatus = [curReach currentReachabilityStatus];
@@ -1546,7 +1528,6 @@ NSString * param_Name = @"Param";
     {
         [self NetworkState:hostReachbility];
     }
-    
     
     NSLog(@"%ld",(long)netStatus);
     
@@ -1563,6 +1544,7 @@ NSString * param_Name = @"Param";
         NS_TF2.editable = YES;
         NS_TF3.editable = YES;
         NS_TF4.editable = YES;
+        
     });
 
 }
@@ -1717,7 +1699,7 @@ NSString * param_Name = @"Param";
                        ^{
                            if ([[textView string]length]>0)
                            {
-                               [NSThread sleepForTimeInterval:0.01];
+                               [NSThread sleepForTimeInterval:0.1];
                                NSString * messageString = [NSString stringWithFormat:@"%@: %@\n",[[GetTimeDay shareInstance] getFileTime],strMsg];
                                NSRange range = NSMakeRange([textView.textStorage.string length] , messageString.length);
                                [textView insertText:messageString replacementRange:range];
@@ -1750,6 +1732,7 @@ NSString * param_Name = @"Param";
         action1.Fail_View = A_FailItem;
         action1.dutTF     = NS_TF1;
         [action1 setCsvTitle:plist.titile];
+        action1.delegate = self;
         
     }
     
@@ -1760,6 +1743,8 @@ NSString * param_Name = @"Param";
         action2.Fail_View =B_FailItem;
         action2.dutTF     = NS_TF2;
         [action2 setCsvTitle:plist.titile];
+        action2.delegate = self;
+        
     }
     
     if (num == 3 && action3 == nil) {
@@ -1770,6 +1755,7 @@ NSString * param_Name = @"Param";
         action3.Fail_View  = C_FailItem;
         action3.dutTF      = NS_TF3;
         [action3 setCsvTitle:plist.titile];
+        action3.delegate = self;
     }
     
     if (num ==4 && action4 == nil){
@@ -1779,6 +1765,7 @@ NSString * param_Name = @"Param";
         action4.Fail_View = D_FailItem;
         action4.dutTF     = NS_TF4;
         [action4 setCsvTitle:plist.titile];
+        action4.delegate = self;
     }
     
 }
@@ -1853,6 +1840,7 @@ NSString * param_Name = @"Param";
                     [Status_TF setStringValue:[NSString stringWithFormat:@"SN%d 检验OK",snIndex]];
                 });
                 
+                
                 index = testIndex+1;;
                 [txtInshare TXT_Write:[NSString stringWithFormat:@"%@:主流程-->SN=%@\n",[[GetTimeDay shareInstance] getFileTime],[NSString stringWithFormat:@"SN%d 检验OK",snIndex]]];
 
@@ -1896,10 +1884,10 @@ NSString * param_Name = @"Param";
             
             [Status_TF setStringValue:[NSString stringWithFormat:@"index = %d:SN%d Enter OK",testIndex,snIndex]];
             
-             tf.editable = NO;
+            tf.editable = NO;
         });
         
-        index = testIndex+1;;
+        index = testIndex+1;
         
     }
     else
@@ -1921,10 +1909,11 @@ NSString * param_Name = @"Param";
     NSString  * startTime = [[GetTimeDay shareInstance] getCurrentDateAndTime];
     NSArray   *  arr  = [resultDic objectForKey:@"dic"];
     NSString  *  sn   = [resultDic objectForKey:@"dut_sn"];
-    NSString  * result = [resultDic objectForKey:@"result"];
+    NSString  *  result = [resultDic objectForKey:@"result"];
     
-    if (isUpLoadSFC&&isServer&&isWebOpen) {//数据上传
-        
+    [txtInshare TXT_Write:[NSString stringWithFormat:@"%@:主流程上传结果-->isUpLoadSFC=%hhd,isWebOpen=%hhd,isServer=%hhd\n",[[GetTimeDay shareInstance] getFileTime],isUpLoadSFC,isWebOpen,isServer]];
+    
+    if (isUpLoadSFC&&isWebOpen){//数据上传
         //上传3次ng，将数据存储到本地
         int i = 0;
         BOOL isUploadOK = NO;
@@ -1936,19 +1925,17 @@ NSString * param_Name = @"Param";
                     
                     [Status_TF setStringValue:[NSString stringWithFormat:@"%@ SFC upload success",SnString]];
                 });
-                
                 [txtInshare TXT_Write:[NSString stringWithFormat:@"%@:主流程-->%@\n",[[GetTimeDay shareInstance] getFileTime],[NSString stringWithFormat:@"%@ SFC upload success",SnString]]];
-                
                 [txt_N_file TXT_Write:[NSString stringWithFormat:@"%@:主流程-->%@\n",[[GetTimeDay shareInstance] getFileTime],[NSString stringWithFormat:@"%@ SFC upload success",SnString]]];
-                
                 isUploadOK = YES;
                 break;
-            }
-            i++;
                 
             }
+            i++;
+        }
         
         if (isUploadOK==NO) {
+            [txtInshare TXT_Write:[NSString stringWithFormat:@"%@:数据上传失败,保存本地-->isUpLoadSFC=%hhd,isWebOpen=%hhd,isServer=%hhd\n",[[GetTimeDay shareInstance] getFileTime],isUpLoadSFC,isWebOpen,isServer]];
             
             dispatch_async(dispatch_get_main_queue(), ^{
                 [Status_TF setStringValue:[NSString stringWithFormat:@"%@ SFC upload fail",SnString]];
@@ -1956,10 +1943,10 @@ NSString * param_Name = @"Param";
             
             @autoreleasepool {
                 NSMutableString    *  urlString = [[NSMutableString alloc] initWithCapacity:10];
+                [urlString appendFormat:@"%@&",fixtureID];
                 [urlString appendFormat:@"%@=%@&", SFC_TEST_SN, sn];
                 [urlString appendFormat:@"%@=%@&", SFC_TEST_RESULT, [notiString containsString:@"P"]?@"Pass":@"Fail"];
                 [urlString appendFormat:@"%@=%@",SFC_TEST_START_TIME,startTime];
-                
                 for(int i = 0; i < [arr count]; i++)
                 {
                     [urlString appendFormat:@"&p%d=%@",i+1,arr[i]];
@@ -1970,20 +1957,21 @@ NSString * param_Name = @"Param";
                 [txtFile TXT_Open:updata_path];
                 [txtFile TXT_Write:urlString];
             }
-            
             [txtInshare TXT_Write:[NSString stringWithFormat:@"%@:主流程-->%@\n",[[GetTimeDay shareInstance] getFileTime],[NSString stringWithFormat:@"%@ SFC upload fail",SnString]]];
             [txt_N_file TXT_Write:[NSString stringWithFormat:@"%@:主流程-->%@\n",[[GetTimeDay shareInstance] getFileTime],[NSString stringWithFormat:@"%@ SFC upload fail",SnString]]];
         }
         
         //将数据上传的结果显示在compare_path路径中
         @autoreleasepool {
-            
             NSMutableString * content = [[NSMutableString alloc]initWithCapacity:10];
             [content appendFormat:@"StartTime=%@;SN=%@;arr=%lu;isUploadOK=%hhd\n",startTime,sn,(unsigned long)[arr count],isUploadOK];
             NSString * compare_path = [NSString stringWithFormat:@"%@/%@",totalPath,@"comparedata.txt"];
             [txtFile TXT_Open:compare_path];
             [txtFile TXT_Write:content];
         }
+        
+        
+        
     }
     else//数据保存在本地
     {
@@ -2014,6 +2002,8 @@ NSString * param_Name = @"Param";
             [txtFile TXT_Open:compare_path];
             [txtFile TXT_Write:content];
         }
+        
+        [txtInshare TXT_Write:[NSString stringWithFormat:@"%@:数据未上传,保存本地-->isUpLoadSFC=%hhd,isWebOpen=%hhd,isServer=%hhd\n",[[GetTimeDay shareInstance] getFileTime],isUpLoadSFC,isWebOpen,isServer]];
     }
     
     
@@ -2048,7 +2038,7 @@ NSString * param_Name = @"Param";
     if ([string containsString:@"D"])fix_D_num=0;
     testnum++;
     
-//    [self UpdateTextView:[NSString stringWithFormat:@"fix_A_num=%d,testnum=%d",fix_A_num,testnum] andClear:NO andTextView:Log_View];
+//  [self UpdateTextView:[NSString stringWithFormat:@"fix_A_num=%d,testnum=%d",fix_A_num,testnum] andClear:NO andTextView:Log_View];
     
      [txtInshare TXT_Write:[NSString stringWithFormat:@"%@:主流程-->%@\n",[[GetTimeDay shareInstance] getFileTime],[NSString stringWithFormat:@"testnum=%d",testnum]]];
      [txt_N_file TXT_Write:[NSString stringWithFormat:@"%@:主流程-->%@\n",[[GetTimeDay shareInstance] getFileTime],[NSString stringWithFormat:@"testnum=%d",testnum]]];
@@ -2064,108 +2054,12 @@ NSString * param_Name = @"Param";
 }
 
 
-#pragma mark--------------监测网络状态
-- (void)monitorNetworking
-{
-    [[AFNetworkReachabilityManager sharedManager] startMonitoring];
-    [[AFNetworkReachabilityManager sharedManager] setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
-        //        switch (status) {
-        //            case -1:
-        //                NSLog(@"未知网络");
-        //                break;
-        //            case 0:
-        //                NSLog(@"网络不可达");
-        //                break;
-        //            case 1:
-        //            {
-        //                NSLog(@"GPRS网络");
-        //                //发通知，带头搞事
-        //                [[NSNotificationCenter defaultCenter] postNotificationName:@"monitorNetworking" object:@"1" userInfo:nil];
-        //            }
-        //                break;
-        //            case 2:
-        //            {
-        //                NSLog(@"wifi网络");
-        //                //发通知，搞事情
-        //                [[NSNotificationCenter defaultCenter] postNotificationName:@"monitorNetworking" object:@"2" userInfo:nil];
-        //            }
-        //                break;
-        //            default:
-        //                break;
-        //        }
-        if (status == AFNetworkReachabilityStatusReachableViaWWAN || status == AFNetworkReachabilityStatusReachableViaWiFi|| status == AFNetworkReachabilityStatusUnknown) {
-            isWebOpen = YES;
-            if (WebOpenNum==0) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [network_State_TF setStringValue:@"网络正常"];
-                    [network_State_TF setBackgroundColor:[NSColor greenColor]];
-                    WebOpenNum=1;
-                });
-                NSLog(@"有网");
-            }
-            
-            //上传数据
-            NSFileManager  * manager  = [NSFileManager defaultManager];
-            BOOL isExist = [manager fileExistsAtPath:updata_path];//判断文件是否存在
-            BOOL __block isUploadSuccess = YES;
-            if(isExist){
-                //读取文件内容
-                [txtFile TXT_Open:updata_path];
-                NSString  * contentStr = [txtFile TXT_Read];
-                NSArray   * dataArr  = [contentStr componentsSeparatedByString:@"\n"];
-                BYDSFCManager  * uploadManager = [[BYDSFCManager alloc]init];
-                //上传数据
-                for (int i=0;i<[dataArr count]-1;i++) {
-                    
-                    @autoreleasepool {
-                        
-                        dispatch_queue_t  queue = dispatch_queue_create([[NSString stringWithFormat:@"queue_%d",i] cStringUsingEncoding:NSUTF8StringEncoding],0);
-                        
-                        dispatch_async(queue, ^{
-                             if(NO==[uploadManager UploadDataFromLocalFile:[dataArr objectAtIndex:i]])
-                             {
-                                 
-                                 isUploadSuccess = NO;
-                                 
-                                 return;
-                             }
-                        });
-                    }
-                }
-                //删掉数据
-                if (isUploadSuccess) {
-                    
-                    BOOL sucess4 = [manager removeItemAtPath:updata_path error:nil];
-                    if(sucess4){
-                        //删除成功
-                    }else{
-                        //删除失败
-                    }
-                }
-            }
-            
-            
-        }else{
-            NSLog(@"没网");
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [network_State_TF setStringValue:@"网络断开"];
-                [network_State_TF setBackgroundColor:[NSColor redColor]];
-                WebOpenNum=0;
-            });
-            isWebOpen = NO;
-        }
-    }];
-}
-
-
-
-
 #pragma mark--------------监测服务器
 -(void)CheckServer
 {
     
     int connectNum = 0;
-    while (connectNum<3) {
+    while (connectNum<6) {
     
         if ([testStep StepSFC_CheckUploadSN:YES Option:@"isConnectServer" sn:nil testResult:nil startTime:nil testArgument:nil]) {
             
@@ -2177,6 +2071,7 @@ NSString * param_Name = @"Param";
                 
             });
             [self UpdateTextView:@"index=2,服务器检测OK" andClear:NO andTextView:Log_View];
+            [txtInshare TXT_Write:[NSString stringWithFormat:@"%@:index=2,服务器检测接口OK\n",[[GetTimeDay shareInstance] getFileTime]]];
             index = 3;
             isServer = YES;
             break;
@@ -2189,6 +2084,7 @@ NSString * param_Name = @"Param";
                 [Server_State_TF setBackgroundColor:[NSColor redColor]];
             });
             [self UpdateTextView:@"index=2,服务器检测NG" andClear:NO andTextView:Log_View];
+            [txtInshare TXT_Write:[NSString stringWithFormat:@"%@:index=2,服务器检测NG\n",[[GetTimeDay shareInstance] getFileTime]]];
             isServer = NO;
             connectNum++;
             if (connectNum==3) {
@@ -2235,7 +2131,7 @@ NSString * param_Name = @"Param";
     
 }
 
-#pragma mark------------判断当前网络是否征程
+#pragma mark------------判断当前网络是否正常
 -(void)NetworkState:(Reachability *)reach
 {
     NetworkStatus netStatus = [reach currentReachabilityStatus];
@@ -2264,31 +2160,46 @@ NSString * param_Name = @"Param";
         NSFileManager  * manager  = [NSFileManager defaultManager];
         BOOL isExist = [manager fileExistsAtPath:updata_path];//判断文件是否存在
         BOOL __block isUploadSuccess = YES;
-        if (isExist&&isUpLoadSFC&&isServer&&isWebOpen){
+        if (isExist&&isUpLoadSFC&&isWebOpen){
             //读取文件内容
             [txtFile TXT_Open:updata_path];
             NSString  * contentStr = [txtFile TXT_Read];
             NSArray   * dataArr  = [contentStr componentsSeparatedByString:@"\n"];
             BYDSFCManager  * uploadManager = [[BYDSFCManager alloc]init];
-            //上传数据
+            //上传数据文件
             for (int i=0;i<[dataArr count]-1;i++) {
                 
                 @autoreleasepool {
                     
                     dispatch_queue_t  queue = dispatch_queue_create([[NSString stringWithFormat:@"queue_%d",i] cStringUsingEncoding:NSUTF8StringEncoding],0);
-                    
                     dispatch_async(queue, ^{
+                        
                         if(NO==[uploadManager UploadDataFromLocalFile:[dataArr objectAtIndex:i]])
                         {
                             isUploadSuccess = NO;
-                            return;
                         }
+                        
                     });
                 }
+           }
+        
+            //延时处理
+            if ([dataArr count]>1000) {
+                [NSThread sleepForTimeInterval:10];
             }
-            //删掉数据
-            if (isUploadSuccess) {
+            else if([dataArr count]>500&&[dataArr count]<1000)
+            {
+                [NSThread sleepForTimeInterval:5];
+            }
+            else{
+                [NSThread sleepForTimeInterval:2];
+            }
                 
+           
+            NSLog(@"isUploadSuccess=%hhd",isUploadSuccess);
+            
+            if (isUploadSuccess) {
+
                 BOOL sucess4 = [manager removeItemAtPath:updata_path error:nil];
                 if(sucess4){
                     //删除成功
@@ -2296,7 +2207,7 @@ NSString * param_Name = @"Param";
                     //删除失败
                 }
             }
-        }
+       }
     }
     else
     {
@@ -2304,6 +2215,42 @@ NSString * param_Name = @"Param";
         
     }
 }
+
+
+
+#pragma mark------------TestActionDelegate
+-(void)writeDataToPath:(NSString *)path FileName:(NSString *)filename FileTitle:(NSString *)headTitle Content:(NSString *)content
+{
+
+    NSFileManager   * filemanger = [NSFileManager defaultManager];
+    
+    dispatch_async(queue, ^{
+       
+        //文件夹路径不村子就创建
+        if (![filemanger fileExistsAtPath:path]) {
+            
+            [filemanger createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:nil];
+        }
+        
+        NSString  * filePath = [NSString stringWithFormat:@"%@/%@.csv",path,filename];
+        
+        NSLog(@"打印文件路径:%@",filePath);
+        
+        if (![filemanger fileExistsAtPath:filePath]) {   //写入数据
+        
+            [filemanger createFileAtPath:filePath contents:[[NSString stringWithFormat:@"%@%@",headTitle,content] dataUsingEncoding:NSUTF8StringEncoding] attributes:nil];
+
+        }else //追加数据
+        {
+            NSFileHandle *file = [NSFileHandle fileHandleForWritingAtPath:filePath];
+            [file seekToEndOfFile];
+            [file writeData:[content dataUsingEncoding:NSUTF8StringEncoding]];
+            [file closeFile];
+        }
+    });
+}
+
+
 
 - (void)setRepresentedObject:(id)representedObject {
     [super setRepresentedObject:representedObject];

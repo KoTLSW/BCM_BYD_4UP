@@ -132,7 +132,7 @@
             [self WriteLine:@":FUNC:IMP:RANG:AUTO ON" andCommunicateType:communicateType]; usleep(10*1000);
 //          [self WriteLine:@":FUNC:IMP:RANG 100" andCommunicateType:communicateType]; usleep(10*1000);
             [self WriteLine:@":APER LONG,1" andCommunicateType:communicateType]; usleep(100*1000);
-            [self WriteLine:@"*TRG" andCommunicateType:communicateType]; usleep(500*1000);
+            [self WriteLine:@":TRIGger:SOURce INTernal" andCommunicateType:communicateType]; usleep(500*1000);
             
         }
             break;
@@ -142,9 +142,9 @@
             [self WriteLine:@"*RST" andCommunicateType:communicateType];usleep(10*1000);
             [self WriteLine:@"*CLS" andCommunicateType:communicateType]; usleep(50);
             [self WriteLine:@":FUNC:IMP CPD" andCommunicateType:communicateType]; usleep(10*1000);
-            [self WriteLine:@":FUNC:IMP:RANG AUTO" andCommunicateType:communicateType]; usleep(10*1000);
+            [self WriteLine:@":FUNC:IMP:RANG:AUTO ON" andCommunicateType:communicateType]; usleep(10*1000);
             [self WriteLine:@":APER LONG,1" andCommunicateType:communicateType]; usleep(50*1000);
-            [self WriteLine:@"*TRG" andCommunicateType:communicateType]; usleep(500*1000);
+            [self WriteLine:@":TRIGger:SOURce INTernal" andCommunicateType:communicateType]; usleep(500*1000);
         }
             break;
             
@@ -153,9 +153,9 @@
             [self WriteLine:@"*RST" andCommunicateType:communicateType];usleep(10*1000);
             [self WriteLine:@"*CLS" andCommunicateType:communicateType]; usleep(50);
             [self WriteLine:@":FUNC:IMP CPQ" andCommunicateType:communicateType]; usleep(10*1000);
-            [self WriteLine:@":FUNC:IMP:RANG AUTO" andCommunicateType:communicateType]; usleep(10*1000);
+            [self WriteLine:@":FUNC:IMP:RANG:AUTO ON" andCommunicateType:communicateType]; usleep(10*1000);
             [self WriteLine:@":APER LONG,1" andCommunicateType:communicateType]; usleep(50*1000);
-            [self WriteLine:@"*TRG" andCommunicateType:communicateType]; usleep(500*1000);
+            [self WriteLine:@":TRIGger:SOURce INTernal" andCommunicateType:communicateType]; usleep(500*1000);
             
         }
             break;
@@ -166,9 +166,9 @@
             [self WriteLine:@"*RST" andCommunicateType:communicateType];usleep(10*1000);
             [self WriteLine:@"*CLS" andCommunicateType:communicateType]; usleep(50);
             [self WriteLine:@":FUNC:IMP CSD" andCommunicateType:communicateType]; usleep(10*1000);
-            [self WriteLine:@":FUNC:IMP:RANG AUTO" andCommunicateType:communicateType]; usleep(10*1000);
+            [self WriteLine:@":FUNC:IMP:RANG:AUTO ON" andCommunicateType:communicateType]; usleep(10*1000);
             [self WriteLine:@":APER LONG,10" andCommunicateType:communicateType]; usleep(50*1000);
-            [self WriteLine:@"*TRG" andCommunicateType:communicateType]; usleep(500*1000);
+            [self WriteLine:@":TRIGger:SOURce INTernal" andCommunicateType:communicateType]; usleep(500*1000);
         }
             
             
@@ -178,9 +178,9 @@
             [self WriteLine:@"*RST" andCommunicateType:communicateType];usleep(10*1000);
             [self WriteLine:@"*CLS" andCommunicateType:communicateType]; usleep(50);
             [self WriteLine:@":FUNC:IMP CSQ" andCommunicateType:communicateType]; usleep(10*1000);
-            [self WriteLine:@":FUNC:IMP:RANG AUTO" andCommunicateType:communicateType]; usleep(10*1000);
+            [self WriteLine:@":FUNC:IMP:RANG:AUTO ON" andCommunicateType:communicateType]; usleep(10*1000);
             [self WriteLine:@":APER LONG,10" andCommunicateType:communicateType]; usleep(50*1000);
-            [self WriteLine:@"*TRG" andCommunicateType:communicateType]; usleep(500*1000);
+            [self WriteLine:@":TRIGger:SOURce INTernal" andCommunicateType:communicateType]; usleep(500*1000);
         }
             break;
             

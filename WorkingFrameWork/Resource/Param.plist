@@ -112,18 +112,20 @@
 	</dict>
 	<key>ServerFC</key>
 	<dict>
-		<key>BDAServer_IP</key>
-		<string>172.19.1.2</string>
 		<key>C</key>
 		<string>ADD_RECORD</string>
 		<key>Front_StationName</key>
 		<string>Sensor-Before-EME</string>
+		<key>Net_Port-2</key>
+		<string>8080</string>
 		<key>Net_Port</key>
 		<string>8081</string>
 		<key>Next_StationName</key>
 		<string>Crown-Flex-EME</string>
 		<key>Product</key>
 		<string>A211</string>
+		<key>Server_IP-2</key>
+		<string>192.168.6.58</string>
 		<key>Server_IP</key>
 		<string>172.19.1.2</string>
 		<key>Station_ID</key>
@@ -160,7 +162,7 @@
 	<key>sw_name</key>
 	<string>BCM_OQC_Station</string>
 	<key>sw_ver</key>
-	<string>V2.2.4BC</string>
+	<string>V2.3.0BC</string>
 	<key>waveFrequence</key>
 	<string>1000</string>
 	<key>waveOffset</key>

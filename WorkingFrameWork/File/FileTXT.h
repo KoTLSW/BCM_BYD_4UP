@@ -8,7 +8,18 @@
 
 #import <Foundation/Foundation.h>
 
+
+@protocol FileTxtDelegate <NSObject>
+
+@optional
+
+-(void)TXT_Write:(NSString *)content Path:(NSString *)path;
+
+@end
+
 @interface FileTXT : NSObject
+
+@property(nonatomic,assign)id delegate;
 
 +(instancetype) shareInstance;
 -(BOOL)TXT_Open:(NSString*)name;

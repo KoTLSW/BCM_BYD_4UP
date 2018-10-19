@@ -273,6 +273,7 @@ static BYDSFCManager* bydSFC=nil;
     _unit.netPort      = [subDic objectForKey:@"Net_Port"];
     _unit.stationName  = [subDic objectForKey:@"Station_Name"];
     _unit.stationID    = [subDic objectForKey:@"Station_ID"];
+    
 }
 
 

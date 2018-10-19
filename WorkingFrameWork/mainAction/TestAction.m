@@ -114,6 +114,10 @@ NSString  *param_path=@"Param";
     NSString              * singleFloder;                        //共享文件路径
     BOOL                    Instrument;                          //仪器是否连接OK
     
+    //产品开始测试时间+产品测试结束时间
+    NSString              * dutStartTime;                        //产品开始时间
+    NSString              * dutEndTime;                          //产品结束时间
+    
     
     
     
@@ -154,7 +158,7 @@ NSString  *param_path=@"Param";
         self.instr_2987             = [fix objectForKey:@"b2987_adress"];
         self.instr_4980             = [fix objectForKey:@"e4980_adress"];
 //        
-        tesCPtLogPath                 = [NSString stringWithFormat:@"%@/%@",[[NSUserDefaults standardUserDefaults] objectForKey:kTotalFoldPath],@"CP.txt"];
+        tesCPtLogPath                 = [NSString stringWithFormat:@"%@/Log/%@",[[NSUserDefaults standardUserDefaults] objectForKey:kTotalFoldPath],@"CP.txt"];
     
         //初始化各种的整型变量
         self.tab =tab;
@@ -286,12 +290,14 @@ NSString  *param_path=@"Param";
                         index =1;
                     }
                     [self writeTestLog:fix_type withString:[NSString stringWithFormat:@"index=%d,Fixture ID=%@",index,FixtureID]];
-                    
                      NSLog(@"index= 0,连接治具%@",self.fixture_uart_port_name);
-                    //[txtContentString appendFormat:@"%@:index=0,治具已经连接\n",[timeDay getFileTime]];
                     [self UpdateTextView:@"index=0,治具已经连接" andClear:NO andTextView:self.Log_View];
+                }
+                else{
                     
-                  
+                    if (![self.Log_View.textStorage.string containsString:@"index = 0,连接治具失败"]) {
+                         [self UpdateTextView:@"index=0,治具已经失败" andClear:NO andTextView:self.Log_View];
+                    }
                 }
             }
         }
@@ -327,8 +333,11 @@ NSString  *param_path=@"Param";
                     }
                     else
                     {
-                        [self UpdateTextView:@"index=1,扫码器未连接成功" andClear:NO andTextView:self.Log_View];
+                        
                         [self writeTestLog:fix_type withString:[NSString stringWithFormat:@"index=%d,扫码器连接失败",index]];
+                        if (![self.Log_View.textStorage.string containsString:@"index=1,扫码器未连接成功"]) {
+                            [self UpdateTextView:@"index=1,扫码器未连接成功" andClear:NO andTextView:self.Log_View];
+                        }
                         
                     }
                     
@@ -425,6 +434,11 @@ NSString  *param_path=@"Param";
                         [self writeTestLog:fix_type withString:[NSString stringWithFormat:@"index=2,手动扫码,index设置为%d",index]];
                     }
                     
+                }
+                else{
+                    if (![self.Log_View.textStorage.string containsString:@"index=2,静电仪连接失败"]) {
+                        [self UpdateTextView:@"index=2,静电仪连接失败" andClear:NO andTextView:self.Log_View];
+                    }
                 }
             }
         }
@@ -523,6 +537,8 @@ NSString  *param_path=@"Param";
                 [self writeTestLog:fix_type withString:[NSString stringWithFormat:@"index=%d,SN已经检验成功",index]];
                 [self UpdateTextView:@"index=4,SN已经检验成功" andClear:NO andTextView:self.Log_View];
                 index =5;
+                
+                dutStartTime = [timeDay getFileTime];
             }
         }
     
@@ -559,13 +575,20 @@ NSString  *param_path=@"Param";
                  [self writeTestLog:fix_type withString:[NSString stringWithFormat:@"index=5,%@-->刷新",testItem.testName]];
                  [self writeTestLog:fix_type withString:[NSString stringWithFormat:@"index=%d,%@-->刷新",index,testItem.testName]];
                  [self.tab flushTableRow:testItem RowIndex:row_index with:fix_type];
-
+        
             
             item_index++;
             row_index++;
             //走完测试流程,进入下一步
             if (item_index == [self.tab.testArray count])
             {
+                //最后的时间
+                dutEndTime = [timeDay getFileTime];
+                
+                //加入测试开始时间和测试结束时间
+                [TestValueArr addObject:dutStartTime];
+                [TestValueArr addObject:dutEndTime];
+                
                 //给设备复位
                 //[txtContentString appendFormat:@"%@:index=5,测试项测试结束\n",[timeDay getFileTime]];
                 [self writeTestLog:fix_type withString:[NSString stringWithFormat:@"index=%d,%@-->测试结束",index,testItem.testName]];
@@ -598,6 +621,7 @@ NSString  *param_path=@"Param";
             [self writeTestLog:fix_type withString:[NSString stringWithFormat:@"index=%d,总文件路径:%@",index,totalPath]];
             [fold Folder_Creat:totalPath];
              NSString   * configCSV = [self backTotalFilePathwithFloder:totalPath];
+             NSString   * contentStr;
             
             if (total_file!=nil) {
                 
@@ -605,11 +629,13 @@ NSString  *param_path=@"Param";
                 //[txtContentString appendFormat:@"%@:index=6,打开总csv文件->%@\n",[timeDay getFileTime],configCSV];
                 [self writeTestLog:fix_type withString:[NSString stringWithFormat:@"index=%d,打开totalCSV文件",index]];
                 
-                [self SaveCSV:total_file withBool:need_title];
+                contentStr = [self SaveCSV:total_file withBool:need_title];
                 //[txtContentString appendFormat:@"%@:index=6,添加数据到totalCSV文件->%@\n",[timeDay getFileTime],configCSV];
                 [self writeTestLog:fix_type withString:[NSString stringWithFormat:@"index=%d,添加数据到totalCSV文件",index]];
                 [self UpdateTextView:@"index=6,往总文件中添加数据" andClear:NO andTextView:self.Log_View];
             }
+            
+            
             
 
             //2.============================生成BCMSingleLog中的文件
@@ -645,20 +671,21 @@ NSString  *param_path=@"Param";
                     [self writeTestLog:fix_type withString:[NSString stringWithFormat:@"%@:index=6,生成单个csv文件%@\n",[timeDay getFileTime],eachCsvFile]];
                     [self UpdateTextView:@"index=6,生成单个CSV文件" andClear:NO andTextView:self.Log_View];
                 }
-                
-                
+
             }
             
+
+            //4.=============================使用代理生成总文件
+            if ([self.delegate respondsToSelector:@selector(writeDataToPath:FileName:FileTitle:Content:)]) {
+                
+                [self.delegate writeDataToPath:path FileName:@"total" FileTitle:self.csvTitle Content:contentStr];
+            }
             
-//            //生成log文件
-//            NSString * logFile = [NSString stringWithFormat:@"%@/log.txt",eachCsvDir];
-//            if (txt_file!=nil)
-//            {
-//                
-//                [txt_file TXT_Open:logFile];
-//                [txt_file TXT_Write:txtContentString];
-//            }
-            
+            //5==============================生成congfig的总文件
+            if ([self.delegate respondsToSelector:@selector(writeDataToPath:FileName:FileTitle:Content:)]) {
+                
+                [self.delegate writeDataToPath:[NSString stringWithFormat:@"%@/%@/%@",path,self.NestID,self.Config_pro] FileName:self.Config_pro FileTitle:self.csvTitle Content:contentStr];
+            }
             
             
             
@@ -1077,18 +1104,19 @@ NSString  *param_path=@"Param";
                     
                     if(isDebug)num=500000000000;
                     
+                    
                      testvalue = [NSString stringWithFormat:@"%.3f",num*1E-9];
                     
                     
                     [self storeValueToDic_with_name:testitem.testName];
                 }
             }
-            else//空测试的情况
+            else//空测模式下测试
             {
-                double Rfixture   = num*1E-9;
-                if ([testitem.testName isEqualToString:@"B_E_DCR"]||[testitem.testName isEqualToString:@"B2_E2_DCR"]||[testitem.testName isEqualToString:@"B4_E4_DCR"]||[testitem.testName isEqualToString:@"ABC_DEF_DCR"]) {
-                    
-                    testvalue = [NSString stringWithFormat:@"%.3f",num*1E-9];
+                if(isDebug)num=500000000000;
+                 double Rfixture   = num*1E-9;
+                if ([testitem.testName isEqualToString:@"B4_E4_DCR"]) {
+                     testvalue = [NSString stringWithFormat:@"%.3f",num*1E-9];
                     [self add_RFixture_Value_To_Sum_Testname:testitem.testName RFixture:Rfixture];
                 }
             }
@@ -1211,7 +1239,7 @@ NSString  *param_path=@"Param";
     {
         testvalue=[NSString stringWithFormat:@"%@",store_Dic[[NSString stringWithFormat:@"%@",testitem.testName]]];
         
-         NSLog(@"打印多长的时间==========%@",testvalue);
+         NSLog(@"testname=%@========testvalue=%@",testitem.testName,testvalue);
         [self writeTestLog:fix_type withString:[NSString stringWithFormat:@"测试项:Item=%@-->value=%@",testitem.testName,testvalue]];
     
     }
@@ -1287,7 +1315,7 @@ NSString  *param_path=@"Param";
 //================================================
 //保存csv
 //================================================
--(void)SaveCSV:(FileCSV *)csvFile withBool:(BOOL)need_title
+-(NSString *)SaveCSV:(FileCSV *)csvFile withBool:(BOOL)need_title
 {
     NSString * line    =  @"";
     NSString * value  =  @"";
@@ -1339,6 +1367,7 @@ NSString  *param_path=@"Param";
     
     [csvFile CSV_Write:contentString];
     
+    return contentString;
 }
 
 
@@ -1442,9 +1471,31 @@ NSString  *param_path=@"Param";
 {
     
     
+    double B4_E4_Rfix= B4_E4_Sum / nullTimes;
+    if (B4_E4_Rfix<=1000&&B4_E4_Rfix>0) {
+        
+        B4_E4_Rfix = 1000+B4_E4_Rfix;
+    }
+    else if (B4_E4_Rfix<=2000&&B4_E4_Rfix>1000) {
+        B4_E4_Rfix = B4_E4_Rfix+1000;
+    }
+    else if (B4_E4_Rfix<=3000&&B4_E4_Rfix>2000) {
+        B4_E4_Rfix = B4_E4_Rfix+2000;
+    }
+    else if (B4_E4_Rfix<=4000&&B4_E4_Rfix>3000) {
+        B4_E4_Rfix = B4_E4_Rfix+3000;
+    }
+    else if (B4_E4_Rfix<=5000&&B4_E4_Rfix>4000) {
+        B4_E4_Rfix = B4_E4_Rfix+4000;
+    }else
+    {
+        B4_E4_Rfix = B4_E4_Rfix+5000;
+    }
+    
+    
     updateItem.fix_B_E_Res     = [NSString stringWithFormat:@"%f",B_E_Sum/nullTimes];
     updateItem.fix_B2_E2_Res   = [NSString stringWithFormat:@"%f",B2_E2_Sum/nullTimes];
-    updateItem.fix_B4_E4_Res   = [NSString stringWithFormat:@"%f",B4_E4_Sum/nullTimes];
+    updateItem.fix_B4_E4_Res   = [NSString stringWithFormat:@"%f",B4_E4_Rfix];
     updateItem.fix_ABC_DEF_Res = [NSString stringWithFormat:@"%f",ABC_DEF_Sum/nullTimes];
     updateItem.fix_Cap         = [NSString stringWithFormat:@"%f",Cap_Sum/nullTimes];
     
@@ -1535,15 +1586,15 @@ NSString  *param_path=@"Param";
 #pragma mark-----------------多次测试和的值
 -(void)add_RFixture_Value_To_Sum_Testname:(NSString *)testname RFixture:(double)RFixture
 {
-    NSString *largeRes= @">1TOhm";
-    if (RFixture<0) {
-        
-        RFixture = 4500+random()%500;
-    }
-    if ([testname isEqualToString:@"B_E_DCR"])         B_E_Sum   = B_E_Sum + RFixture;
-    if ([testname isEqualToString:@"B2_E2_DCR"])       B2_E2_Sum = B2_E2_Sum + RFixture;
-    if ([testname isEqualToString:@"B4_E4_DCR"])       B4_E4_Sum = B4_E4_Sum + RFixture;
-    if ([testname isEqualToString:@"ABC_DEF_DCR"])     ABC_DEF_Sum =ABC_DEF_Sum + RFixture;
+    NSString *largeRes= @"1001";
+//    if (RFixture<0) {
+//        
+//        RFixture = 4500+random()%500;
+//    }
+    if ([testname isEqualToString:@"B_E_DCR"])         B_E_Sum   = B_E_Sum + fabs(RFixture);
+    if ([testname isEqualToString:@"B2_E2_DCR"])       B2_E2_Sum = B2_E2_Sum + fabs(RFixture);
+    if ([testname isEqualToString:@"B4_E4_DCR"])       B4_E4_Sum = B4_E4_Sum + fabs(RFixture);
+    if ([testname isEqualToString:@"ABC_DEF_DCR"])     ABC_DEF_Sum =ABC_DEF_Sum + fabs(RFixture);
     
     [store_Dic setValue:[NSString stringWithFormat:@"%@",largeRes] forKey:[NSString stringWithFormat:@"%@_Rdut",testname]];
     [store_Dic setValue:[NSString stringWithFormat:@"%.3f",RFixture] forKey:[NSString stringWithFormat:@"%@_Rfix",testname]];
@@ -1555,7 +1606,7 @@ NSString  *param_path=@"Param";
 -(void)storeValueToDic_with_name:(NSString *)testname
 {
     double Rdut,Rfixture;
-    NSString *largeRes=@">1TOhm";
+    NSString *largeRes=@"1001";
     Rfixture=num*1E-9;
 
     if ([testname isEqualToString:@"B_E_DCR"]) {
@@ -1574,24 +1625,19 @@ NSString  *param_path=@"Param";
     Rdut=(num*1E-9*Rfixture)/(Rfixture-num*1E-9);
         
     
-    //DCR为负值时，并且小于-10000超过量程，Rdut显示1001
-    //DCR为正值时，DCR-Rfix>0,Rdut显示-999，提示重新空测
-    //DCR为正值时，DCR-Rfix<0,正常计算
-    
-    if ([testname isEqualToString:@"B4_E4_DCR"]) {
+    //DCR为负值，超过量程，Rdut显示1001，
+    //DCR>1000时,超过量程，Rdut显示1001
+    //DCR为正值，DCR-Rfix>0,Rdut显示-999,提示空测
+    //DCR为正值, DCR-Rfix<0,正常计算
+    //          Rdut>1000时，显示1001
+    //          0<Rdut<1000时，正常计算
         
-        //DCR为负值，超过量程，Rdut显示1001
-        //DCR为正值，DCR-Rfix>0,Rdut显示-999,提示空测
-        //DCR为正值, DCR-Rfix<0,正常计算
-        //          Rdut>1000时，显示1001
-        //          0<Rdut<1000时，正常计算
-        
-        if (num*1E-9<0) {
+     if (num*1E-9>1000||num*1E-9<0||Rdut >=1000) {
             
-            [store_Dic setValue:[NSString stringWithFormat:@"%@",@"1001"] forKey:[NSString stringWithFormat:@"%@_Rdut",testname]];
-        }
-        else
-        {
+           [store_Dic setValue:[NSString stringWithFormat:@"%@",largeRes] forKey:[NSString stringWithFormat:@"%@_Rdut",testname]];
+     }
+     else
+     {
             if (num*1E-9>=Rfixture) {
                 
                 [store_Dic setValue:[NSString stringWithFormat:@"%@",@"-999"] forKey:[NSString stringWithFormat:@"%@_Rdut",testname]];
@@ -1599,35 +1645,13 @@ NSString  *param_path=@"Param";
             }
             else
             {
-                if (Rdut >=1000)
-                {
-                    
-                    [store_Dic setValue:[NSString stringWithFormat:@"%@",@"1001"] forKey:[NSString stringWithFormat:@"%@_Rdut",testname]];
-                }
-                if (Rdut<1000&&Rdut>=0) {
-                    [store_Dic setValue:[NSString stringWithFormat:@"%f",Rdut] forKey:[NSString stringWithFormat:@"%@_Rdut",testname]];
-                }
+                [store_Dic setValue:[NSString stringWithFormat:@"%f",Rdut] forKey:[NSString stringWithFormat:@"%@_Rdut",testname]];
             }
-            
-        }
-        [store_Dic setValue:[NSString stringWithFormat:@"%.3f",Rfixture] forKey:[NSString stringWithFormat:@"%@_Rfix",testname]];
-        
     }
-    else
-    {
-        if (num*1E-9 >= Rfixture || Rdut > 1000 || num*1E-9 < 0)
-        {
-            [store_Dic setValue:[NSString stringWithFormat:@"%@",largeRes] forKey:[NSString stringWithFormat:@"%@_Rdut",testname]];
-        }
-        else
-        {
-            [store_Dic setValue:[NSString stringWithFormat:@"%.3f",Rdut] forKey:[NSString stringWithFormat:@"%@_Rdut",testname]];
-        }
-        
-        [store_Dic setValue:[NSString stringWithFormat:@"%.3f",Rfixture] forKey:[NSString stringWithFormat:@"%@_Rfix",testname]];
     
-    }
-}
+     [store_Dic setValue:[NSString stringWithFormat:@"%.3f",Rfixture] forKey:[NSString stringWithFormat:@"%@_Rfix",testname]];
+    
+ }
 
 
 #pragma mark----------------MΩ情况下调用的方法，
@@ -1788,6 +1812,9 @@ NSString  *param_path=@"Param";
     }
     [CP_Data_file TXT_Write:[NSString stringWithFormat:@"%@,",CpData]];
 }
+
+
+#pragma mark==================写入文件
 
 
 

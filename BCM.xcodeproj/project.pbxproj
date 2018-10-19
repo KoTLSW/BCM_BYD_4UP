@@ -62,7 +62,6 @@
 		503940D321172DB80017A6F8 /* ServerWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 503940D121172DB80017A6F8 /* ServerWindow.m */; };
 		503940D421172DB80017A6F8 /* ServerWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 503940D221172DB80017A6F8 /* ServerWindow.xib */; };
 		5B13F3E420157F63004C14AE /* Station_Cr_1_Humid.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5B13F3D820157F63004C14AE /* Station_Cr_1_Humid.plist */; };
-		5B13F3E620157F63004C14AE /* Station_Cr_2_Humid.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5B13F3DA20157F63004C14AE /* Station_Cr_2_Humid.plist */; };
 		5B13F3E820157F63004C14AE /* Station_Cr_3_Humid.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5B13F3DC20157F63004C14AE /* Station_Cr_3_Humid.plist */; };
 		5B13F3F420158000004C14AE /* AgilentB2987A.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B13F3F120158000004C14AE /* AgilentB2987A.m */; };
 		5B13F3F520158000004C14AE /* AgilentE4980A.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B13F3F320158000004C14AE /* AgilentE4980A.m */; };
@@ -174,7 +173,6 @@
 		503940D121172DB80017A6F8 /* ServerWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ServerWindow.m; sourceTree = "<group>"; };
 		503940D221172DB80017A6F8 /* ServerWindow.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ServerWindow.xib; sourceTree = "<group>"; };
 		5B13F3D820157F63004C14AE /* Station_Cr_1_Humid.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Station_Cr_1_Humid.plist; sourceTree = "<group>"; };
-		5B13F3DA20157F63004C14AE /* Station_Cr_2_Humid.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Station_Cr_2_Humid.plist; sourceTree = "<group>"; };
 		5B13F3DC20157F63004C14AE /* Station_Cr_3_Humid.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Station_Cr_3_Humid.plist; sourceTree = "<group>"; };
 		5B13F3F020158000004C14AE /* AgilentB2987A.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AgilentB2987A.h; sourceTree = "<group>"; };
 		5B13F3F120158000004C14AE /* AgilentB2987A.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AgilentB2987A.m; sourceTree = "<group>"; };
@@ -307,7 +305,6 @@
 			isa = PBXGroup;
 			children = (
 				5B13F3D820157F63004C14AE /* Station_Cr_1_Humid.plist */,
-				5B13F3DA20157F63004C14AE /* Station_Cr_2_Humid.plist */,
 				5B13F3DC20157F63004C14AE /* Station_Cr_3_Humid.plist */,
 				04A423DD1FA40D7F00838C6F /* Param.plist */,
 			);
@@ -545,7 +542,6 @@
 				5029AA6D21171A0000F29AB9 /* .gitignore in Resources */,
 				5029AA6C21171A0000F29AB9 /* .cocoadocs.yml in Resources */,
 				5B13F3E820157F63004C14AE /* Station_Cr_3_Humid.plist in Resources */,
-				5B13F3E620157F63004C14AE /* Station_Cr_2_Humid.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

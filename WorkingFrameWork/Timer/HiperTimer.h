@@ -18,14 +18,12 @@
 @interface HiperTimer : NSObject 
 {
 @private
-
 	struct timeval tv;
 	uint64_t mStart;
 	uint64_t mEnd;
 }
 
 -(int) durationMillisecond; //get the millisencond from timer start
-
 +(void) DelaySecond:(double) delaytime;
 +(void) DelayMillsecond:(int) delaytime;
 

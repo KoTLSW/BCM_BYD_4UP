@@ -39,6 +39,7 @@ static FileTXT * _instance = nil;
     {
         txtpath = nil;
         _lock = [Lock shareInstance];
+        
     }
     
     return self;

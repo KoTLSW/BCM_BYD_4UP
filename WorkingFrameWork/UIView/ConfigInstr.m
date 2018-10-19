@@ -71,6 +71,7 @@
         }
        
     }
+    [arr_Instr addObject:@"NULL"];
     
     //显示在界面PopButton按钮上
     [PopButton_2987A addItemsWithTitles:arr_Instr];
@@ -86,19 +87,19 @@
     
 
 #pragma mark---------下面的代码测试的时候使用
-    /*
-    NSArray  * arr_2987b = @[@"2987A",@"2987B",@"2987C",@"2987D"];
-    [PopButton_2987A addItemsWithTitles:arr_2987b];
-    [PopButton_2987B addItemsWithTitles:arr_2987b];
-    [PopButton_2987C addItemsWithTitles:arr_2987b];
-    [PopButton_2987D addItemsWithTitles:arr_2987b];
-    NSArray  * arr_4980b = @[@"4980A",@"4980B",@"4980C",@"4980D"];
-    //4980
-    [PopButton_4980A addItemsWithTitles:arr_4980b];
-    [PopButton_4980B addItemsWithTitles:arr_4980b];
-    [PopButton_4980C addItemsWithTitles:arr_4980b];
-    [PopButton_4980D addItemsWithTitles:arr_4980b];
-    */
+//    
+//    NSArray  * arr_2987b = @[@"2987A",@"2987B",@"2987C",@"2987D"];
+//    [PopButton_2987A addItemsWithTitles:arr_2987b];
+//    [PopButton_2987B addItemsWithTitles:arr_2987b];
+//    [PopButton_2987C addItemsWithTitles:arr_2987b];
+//    [PopButton_2987D addItemsWithTitles:arr_2987b];
+//    NSArray  * arr_4980b = @[@"4980A",@"4980B",@"4980C",@"4980D"];
+//    //4980
+//    [PopButton_4980A addItemsWithTitles:arr_4980b];
+//    [PopButton_4980B addItemsWithTitles:arr_4980b];
+//    [PopButton_4980C addItemsWithTitles:arr_4980b];
+//    [PopButton_4980D addItemsWithTitles:arr_4980b];
+//    
     
     
     

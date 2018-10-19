@@ -24,6 +24,7 @@
 -(NSString*)getCurrentDayTime;//获取小时和分钟
 
 -(NSString*)getCurrentDateAndTime;//获取日期，小时，分钟，秒
+
 @end
 
 
