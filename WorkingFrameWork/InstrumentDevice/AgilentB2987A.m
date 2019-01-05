@@ -64,7 +64,6 @@
             //            [self WriteLine:@":SENS:RES:RANG:AUTO ON" andCommunicateType:communicateType];usleep(50*1000);
             
             [self WriteLine:@":SENS:FUNC:ON 'RES'" andCommunicateType:communicateType];usleep(10*1000);
-//          [self WriteLine:@":SENS:RES:RANG:AUTO:LLIM 1E+9" andCommunicateType:communicateType];usleep(50*1000);
             [self WriteLine:@":SENS:RES:RANG:AUTO ON" andCommunicateType:communicateType];usleep(50*1000);
             [self WriteLine:@":SENS:CURR:NPLC:AUTO ON" andCommunicateType:communicateType];usleep(50*1000);
             [self WriteLine:@":SOUR:FUNC:MODE VOLT" andCommunicateType:communicateType]; usleep(50*1000);
@@ -93,8 +92,8 @@
             [self WriteLine:@":SENS:CURR:APER 1" andCommunicateType:communicateType];usleep(50*1000);
             [self WriteLine:@":SENS:CURR:NPLC 1" andCommunicateType:communicateType];usleep(50*1000);
             [self WriteLine:@":OUTP ON" andCommunicateType:communicateType];usleep(50*1000);
-            [self WriteLine:@":INP ON" andCommunicateType:communicateType];usleep(2000*1000);
-            [self WriteLine:@":MEAS:CURR?" andCommunicateType:communicateType];usleep(1000*1000);        }
+            [self WriteLine:@":INP ON" andCommunicateType:communicateType];usleep(50*1000);
+            [self WriteLine:@":MEAS:CURR?" andCommunicateType:communicateType];usleep(50*1000);        }
             break;
             
         case AgilentB2987A_VOLT:
@@ -108,8 +107,8 @@
             [self WriteLine:@":SENS:VOLT:APER:AUTO ON" andCommunicateType:communicateType];usleep(50*1000);
             [self WriteLine:@":SENS:VOLT:GUAR OFF" andCommunicateType:communicateType];usleep(50*1000);
             [self WriteLine:@":OUTP ON" andCommunicateType:communicateType];usleep(50*1000);
-            [self WriteLine:@":INP ON" andCommunicateType:communicateType];usleep(2000*1000);
-            [self WriteLine:@":MEAS:VOLT?" andCommunicateType:communicateType];usleep(1000*1000);
+            [self WriteLine:@":INP ON" andCommunicateType:communicateType];usleep(50*1000);
+            [self WriteLine:@":MEAS:VOLT?" andCommunicateType:communicateType];usleep(50*1000);
         }
             break;
             

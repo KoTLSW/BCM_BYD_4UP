@@ -324,14 +324,15 @@ NSString * param_Name = @"Param";
     
     //***********************断网上传区***********************//
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:@"kNetworkReachabilityChangedNotification" object:nil];
-    
-    dispatch_async(dispatch_get_global_queue(0, 0), ^{
-        
-        hostReachbility = [Reachability reachabilityWithHostName:[param.ServerFC objectForKey:@"Server_IP"]];
-        [self NetworkState:hostReachbility];
-        [hostReachbility startNotifier];
-        
-    });
+
+// 取消判定网络   
+//    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+//        
+//        hostReachbility = [Reachability reachabilityWithHostName:[param.ServerFC objectForKey:@"Server_IP"]];
+//        [self NetworkState:hostReachbility];
+//        [hostReachbility startNotifier];
+//        
+//    });
    
     
     
@@ -722,7 +723,11 @@ NSString * param_Name = @"Param";
                 });
                 [self UpdateTextView:@"index=2,非服务器检测模式" andClear:NO andTextView:Log_View];
                 index = 3;
-                isServer = NO;
+                
+                
+#warning  检验服务器设置为OK
+                isServer  = YES;
+                isWebOpen = YES;
             }
         }
 #pragma mark-------------//index = 3,检测SN1的输入值
@@ -1799,6 +1804,7 @@ NSString * param_Name = @"Param";
     [serialport Close];
     [humiturePort Close];
     
+    exit(1);
     
     
 }
@@ -2249,6 +2255,7 @@ NSString * param_Name = @"Param";
         }
     });
 }
+
 
 
 

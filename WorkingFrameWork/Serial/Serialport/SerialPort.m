@@ -787,30 +787,7 @@
     
 	[self ReadSerialPort];
     
-    //    while (true)
-    //	{
-    //		[self ReadSerialPort];
-    
-    //        if (rang.length > 0)
-    //        {
-    //            //NSAutoreleasePool *pool =[[NSAutoreleasePool alloc] init];
-    //
-    //            NSString* readbuff = [globalBuffer substringToIndex:rang.location + rang.length]; // program quit unexcepted in this function substringToIndex
-    //            NSString* remainbuff = [globalBuffer substringFromIndex:rang.location + rang.length];
-    //            [globalBuffer setString:remainbuff];
-    //            readbuff = [readbuff stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-    //            [strResult setString:readbuff];
-    //
-    //        }
-    //
-    //
-    //		[NSThread sleepForTimeInterval:100 / 1000.0];
-    //	}
-	
-	//[hp autorelease];
-	
-	
-	
+
 	
     
     

@@ -128,9 +128,7 @@ NSString  *param_path=@"Param";
 
 /**相关的说明
   1.Fixture ID 返回的值    Fixture ID?\r\nEW011X*_*\r\n       其中x代表治具中A,B,C,D
-
- 
- 
+   
 */
 
 
@@ -276,7 +274,6 @@ NSString  *param_path=@"Param";
                 [self writeTestLog:fix_type withString:[NSString stringWithFormat:@"index=%d,治具开始连接",index]];
                  BOOL isCollect = [serialport Open:self.fixture_uart_port_name]||[serialport Open:self.fixture_uart_port_name_two];
                 if (isCollect) {
-                    
                      //发送指令获取ID的值
                     [self writeTestLog:fix_type withString:[NSString stringWithFormat:@"index=%d,治具连接成功",index]];
                     [NSThread sleepForTimeInterval:0.2];
@@ -288,10 +285,17 @@ NSString  *param_path=@"Param";
                         FixtureID = [[FixtureID componentsSeparatedByString:@"\r\n"] objectAtIndex:1];
                         FixtureID = [FixtureID stringByReplacingOccurrencesOfString:@"*_*" withString:@""];
                         index =1;
+                        
+                        [self writeTestLog:fix_type withString:[NSString stringWithFormat:@"index=%d,Fixture ID=%@",index,FixtureID]];
+                        NSLog(@"index= 0,连接治具%@",self.fixture_uart_port_name);
+                        [self UpdateTextView:@"index=0,治具已经连接,通信正常" andClear:NO andTextView:self.Log_View];
+                    }else
+                    {
+                        NSLog(@"index= 0,连接治具%@",self.fixture_uart_port_name);
+                        [self UpdateTextView:@"index=0,治具已经连接,通信异常" andClear:NO andTextView:self.Log_View];
                     }
-                    [self writeTestLog:fix_type withString:[NSString stringWithFormat:@"index=%d,Fixture ID=%@",index,FixtureID]];
-                     NSLog(@"index= 0,连接治具%@",self.fixture_uart_port_name);
-                    [self UpdateTextView:@"index=0,治具已经连接" andClear:NO andTextView:self.Log_View];
+                   
+                
                 }
                 else{
                     
@@ -727,6 +731,7 @@ NSString  *param_path=@"Param";
             
 
             
+            
             dispatch_async(dispatch_get_main_queue(), ^{
                 
                 [self.resultTF setStringValue:PF?@"PASS":@"FAIL"];
@@ -797,11 +802,13 @@ NSString  *param_path=@"Param";
             [self writeTestLog:fix_type withString:[NSString stringWithFormat:@"index=9,SN清空后的值:%@",_dut_sn]];
             //[scanport WriteLine:@"LOFF"];
             //[scanport Close];
+            
             if (nulltest) {
+                
                 nullTimes++;
             }
-           
-//            
+            
+            
 //            if (_qrCode==AutoCode) {
 //                
 //                index = 2;
@@ -814,13 +821,14 @@ NSString  *param_path=@"Param";
 //            }
 //            else
 //            {
-                index = 1000;
+//                index = 1000;
                 [self writeTestLog:fix_type withString:@"index=9,自动扫码，index = 1000"];
 //            }
+            
+            index = 2;
             item_index =0;
             row_index = 0;
             PF = YES;
-            
             
         }
      
@@ -854,9 +862,6 @@ NSString  *param_path=@"Param";
     
     for (int i=0; i<[testitem.testAllCommand count]; i++)
     {
-        
-      
-        
         dict =[testitem.testAllCommand objectAtIndex:i];
         subTestDevice = dict[@"TestDevice"];
         subTestCommand=dict[@"TestCommand"];
@@ -1353,6 +1358,23 @@ NSString  *param_path=@"Param";
     }
     //line字符串前面增加SN和测试结果
     NSString *  contentStr = [NSMutableString stringWithFormat:@"\n%@,%@,%@,%@,%@,%@,%@,%@,%@,%@,%@",start_time,end_time,[self.Config_Dic objectForKey:kSoftwareVersion],self.NestID,@"Cr",self.Config_pro,self.dut_sn,test_result,FixtureID,[self.Config_Dic objectForKey:kOperator_ID],line];
+    
+    //出现两次，直接替换掉
+    if ([contentStr containsString:[NSString stringWithFormat:@"%@\r\n%@",[self.Config_Dic objectForKey:kOperator_ID],[self.Config_Dic objectForKey:kOperator_ID]]]) {
+        
+        [contentStr stringByReplacingOccurrencesOfString:[NSString stringWithFormat:@"%@\r\n%@",[self.Config_Dic objectForKey:kOperator_ID],[self.Config_Dic objectForKey:kOperator_ID]] withString:[self.Config_Dic objectForKey:kOperator_ID]];
+    }
+    else if ([contentStr containsString:[NSString stringWithFormat:@"%@\n%@",[self.Config_Dic objectForKey:kOperator_ID],[self.Config_Dic objectForKey:kOperator_ID]]]) {
+        
+          [contentStr stringByReplacingOccurrencesOfString:[NSString stringWithFormat:@"%@\n%@",[self.Config_Dic objectForKey:kOperator_ID],[self.Config_Dic objectForKey:kOperator_ID]] withString:[self.Config_Dic objectForKey:kOperator_ID]];
+        
+    }
+    else{
+        
+        NSLog(@"不做任何处理");
+    
+    }
+    
     
     NSMutableString  * contentString = [NSMutableString stringWithString:contentStr];
     
